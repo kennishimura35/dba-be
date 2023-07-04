@@ -1,0 +1,15 @@
+ENV=development
+
+APP_NAME=FTH
+APP_VERSION=v0.0.1
+
+SERVER_PORT=3001
+
+DB_NAME=latihan_aws
+DB_HOST=ptbsp.ddns.net
+DB_PORT=13336
+DB_USER=latihan_aws
+DB_PASS=bsp123!!
+
+JWT_SECRET=s3cretbsp123!!
+JWT_EXPIRED=12h

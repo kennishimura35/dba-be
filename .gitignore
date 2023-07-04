@@ -1,0 +1,10 @@
+.env
+
+# package directories
+node_modules
+
+# Serverless directories
+.serverless
+
+# unit test
+coverage
