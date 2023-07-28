@@ -1,6 +1,7 @@
 const { Pgsql } = require("../model/Pgsql");
 const moment = require('moment');
 const uuid = require("uuid").v4;
+const localStorage = require("localStorage");
 const { Ok, BadRequest, InternalServerErr, DataUpdated, DataDeleted, SearchOk, NotFound, DataCreated } = require("../helper/ResponseUtil");
 require('dotenv').config();
 
@@ -87,9 +88,9 @@ class PgsqlController {
   getUsers = (req, res) => {
     const messages = [];
 
-    this.#pgsql.getUsers((err, data) => {
+    this.#pgsql.getUsers(req, (err, data) => {
       if (err) {
-        messages.push('Internal error // Find by id error');
+        messages.push('Internal error');
         messages.push(err.message);
         return InternalServerErr(res, messages);
       }
@@ -117,7 +118,7 @@ class PgsqlController {
 
     this.#pgsql.getDatabases((err, data) => {
       if (err) {
-        messages.push('Internal error // Find by id error');
+        messages.push('Internal error');
         messages.push(err.message);
         return InternalServerErr(res, messages);
       }
@@ -145,7 +146,7 @@ class PgsqlController {
 
     this.#pgsql.getSchemas((err, data) => {
       if (err) {
-        messages.push('Internal error // Find by id error');
+        messages.push('Internal error');
         messages.push(err.message);
         return InternalServerErr(res, messages);
       }
@@ -168,6 +169,73 @@ class PgsqlController {
     });
   }
 
+  loginDatabase = (req, res) => {
+    const messages = [];
+
+    req.app.locals.PG_DATABASE= req?.body?.PG_DATABASE
+    req.app.locals.PG_HOST= req?.body?.PG_HOST
+    req.app.locals.PG_PORT= req?.body?.PG_PORT
+    req.app.locals.PG_USER= req?.body?.PG_USER
+    req.app.locals.PG_PASS= req?.body?.PG_PASS
+
+    this.#pgsql.loginDatabase(req, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Berhasil melakukan Login!`);
+      const schemas  = [];
+
+      data.forEach(schema => {
+        schemas.push({
+          schema_name : schema.schema_name
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        schemas
+      );
+ 
+    });
+  }
+
+  grantAllToAllSchemas = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+
+    if (schemas === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.grantAllToAllSchemas(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Schemas berhasil ditemukan`);
+      const datas  = [];
+
+      data.forEach(dt => {
+        datas.push({
+          command : dt.command
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        datas
+      );
+ 
+    });
+  }
   
 
 }

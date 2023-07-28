@@ -1,5 +1,5 @@
 const { Unauthorized } = require('../helper/ResponseUtil')
-const { verifyJwt } = require('../helper/JwtUtil')
+const { verifyJwt, addConnection } = require('../helper/JwtUtil')
 
 
 const getToken = (bearer) => {
@@ -17,6 +17,20 @@ const JwtFilter = (req, res, next) => {
         }
     } else {
         Unauthorized(res, 'Token is missing')
+    }    
+}
+
+const ConnFilter = (req, res, next) => {
+    if(req.body.PG_DATABASE) {
+        req.app.locals.PG_DATABASE = req?.body?.PG_DATABASE
+        req.app.locals.PG_HOST = req?.body?.PG_HOST
+        req.app.locals.PG_PORT = req?.body?.PG_PORT
+        req.app.locals.PG_USER = req?.body?.PG_USER
+        req.app.locals.PG_PASS = req?.body?.PG_PASS
+        next()
+        
+    } else {
+        Unauthorized(res, 'Missing')
     }    
 }
 
@@ -48,4 +62,4 @@ const PermissionFilter = (perm) => {
 
 
 
-module.exports = { JwtFilter, PermissionFilter }
+module.exports = { JwtFilter, PermissionFilter, ConnFilter }

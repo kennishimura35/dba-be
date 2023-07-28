@@ -1,6 +1,6 @@
 const express = require("express");
 const { PgsqlController } = require('../controller/PgsqlController');
- const { JwtFilter } = require('../middleware/RequestFilter');
+ const { JwtFilter, ConnFilter } = require('../middleware/RequestFilter');
 
 const pgsqlController = new PgsqlController();
 
@@ -10,7 +10,7 @@ const multer = require("multer");
 const path = require("path");
 
 
-// router.post("/createOne", JwtFilter)
+router.post("/loginDatabase", ConnFilter)
 
 router.route('/getUsers')
   .get(pgsqlController.getUsers)
@@ -18,5 +18,11 @@ router.route('/getDatabases')
   .get(pgsqlController.getDatabases)
 router.route('/getSchemas')
   .get(pgsqlController.getSchemas)
+
+router.route('/loginDatabase')
+  .post(pgsqlController.loginDatabase)
+
+router.route('/grantAllToAllSchemas')
+  .post(pgsqlController.grantAllToAllSchemas)
 
 module.exports = router;

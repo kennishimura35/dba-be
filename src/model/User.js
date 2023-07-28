@@ -58,7 +58,7 @@ class User {
   }
 
   async #setConnetion() {
-    this.#connection = await Connection.getConnection();
+    // this.#connection = await Connection.getConnection();
   }
 
   /**
