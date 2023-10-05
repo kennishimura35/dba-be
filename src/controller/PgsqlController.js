@@ -143,7 +143,7 @@ class PgsqlController {
 
   getSchemas = (req, res) => {
     const messages = [];
-
+   
     this.#pgsql.getSchemas((err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -157,6 +157,102 @@ class PgsqlController {
       data.forEach(schema => {
         schemas.push({
           schema_name : schema.schema_name
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        schemas
+      );
+ 
+    });
+  }
+
+  getTables = (req, res) => {
+    const messages = [];
+    const schema = req.query.schema
+    this.#pgsql.getTables(schema, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`tables berhasil ditemukan`);
+      const schemas  = [];
+
+      data.forEach(schema => {
+        schemas.push({
+          table_name : schema.table_name
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        schemas
+      );
+ 
+    });
+  }
+
+  getPermissions = (req, res) => {
+    const messages = [];
+    const schemata = {
+      grantee: req.query.grantee,
+      table_schema: req.query.table_schema,
+      table_name: req.query.table_name
+    }
+
+    this.#pgsql.getPermissions(schemata, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`permissions berhasil ditemukan`);
+      const schemas  = [];
+
+      data.forEach(schema => {
+        schemas.push({
+          grantor : schema.grantor,
+          grantee: schema.grantee,
+          database: schema.table_catalog,
+          table_schema: schema.table_schema,
+          table_name: schema.table_name,
+          privilege_type: schema.privilege_type
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        schemas
+      );
+ 
+    });
+  }
+
+  getTableSize = (req, res) => {
+    const messages = [];
+    const schemata = req.query.schema
+    this.#pgsql.getTableSize(schemata, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Table berhasil ditemukan`);
+      const schemas  = [];
+
+      data.forEach(schema => {
+        schemas.push({
+          table_schema : schema.table_schema,
+          table_name: schema.table_name,
+          pg_relation_size: schema.pg_relation_size
         });
       });
 
@@ -219,22 +315,250 @@ class PgsqlController {
         return InternalServerErr(res, messages);
       }
 
-      messages.push(`Schemas berhasil ditemukan`);
+      messages.push(`Granted user ${user}`);
       const datas  = [];
 
-      data.forEach(dt => {
-        datas.push({
-          command : dt.command
+        data.forEach(dt => {
+          datas.push({
+            command : dt.command
+          });
         });
-      });
 
-      return Ok(
-        res,
-        messages,
-        datas
-      );
- 
-    });
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+    }
+
+  grantAllTablesToAllSchemas = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+
+    if (schemas === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.grantAllTablesToAllSchemas(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+        data.forEach(dt => {
+          datas.push({
+            command : dt.command
+          });
+        });
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+    }
+
+  grantAllToSchema = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+    
+    if (schemas === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.grantAllToSchema(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+  }
+
+  grantAllTablesToSchema = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+    
+    if (schemas === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.grantAllTablesToSchema(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+  }
+
+  grantAllToDatabase = (req, res) => {
+    const messages = [];
+    const databases = req.body.databases;
+    const user = req.body.user;
+    
+    if (databases === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.grantAllToDatabase(databases, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+  }
+
+  createSchema = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+    
+    if (schemas === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.createSchema(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Schema berhasil dibuat`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+  }
+
+  createDatabase = (req, res) => {
+    const messages = [];
+    const databases = req.body.databases;
+    const user = req.body.user;
+    
+    if (databases === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.createDatabase(databases, user, (err, data) => {
+      if (err) {
+        console.log(err.code)
+        if (err.code === `42P04`) {
+          messages.push(`Database ${databases} already exists`);
+          return BadRequest(res, messages);
+        }
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Database berhasil dibuat`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+  }
+
+  createUser = (req, res) => {
+    const messages = [];
+    const password = req.body.password;
+    const user = req.body.user;
+    
+    if (password === null || user === null){
+      return InternalServerErr(res, "Data not valid");
+    }
+
+    this.#pgsql.createUser(user, password, (err, data) => {
+      if (err) {
+        // console.log(err.code)
+        if (err.code === `42710`) {
+          messages.push(`User ${user} already exists`);
+          return BadRequest(res, messages);
+        }
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`User berhasil dibuat`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
   }
   
 

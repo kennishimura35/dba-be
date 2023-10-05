@@ -18,11 +18,38 @@ router.route('/getDatabases')
   .get(pgsqlController.getDatabases)
 router.route('/getSchemas')
   .get(pgsqlController.getSchemas)
+router.route('/getTables')
+  .get(pgsqlController.getTables)
+router.route('/getPermissions')
+  .get(pgsqlController.getPermissions)
+router.route('/getTableSize')
+  .get(pgsqlController.getTableSize)
 
 router.route('/loginDatabase')
   .post(pgsqlController.loginDatabase)
 
 router.route('/grantAllToAllSchemas')
   .post(pgsqlController.grantAllToAllSchemas)
+  
+router.route('/grantAllTablesToAllSchemas')
+.post(pgsqlController.grantAllTablesToAllSchemas)
+
+router.route('/grantAllToSchema')
+  .post(pgsqlController.grantAllToSchema)
+  
+router.route('/grantAllTablesToSchema')
+.post(pgsqlController.grantAllTablesToSchema)
+
+router.route('/grantAllToDatabase')
+  .post(pgsqlController.grantAllToDatabase)
+  
+router.route('/createSchema')
+.post(pgsqlController.createSchema)
+  
+router.route('/createDatabase')
+.post(pgsqlController.createDatabase)
+
+router.route('/createUser')
+.post(pgsqlController.createUser)
 
 module.exports = router;
