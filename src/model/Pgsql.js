@@ -99,19 +99,185 @@ class Pgsql {
     
   };
   async getPermissions(schema, result) {
-    const query = `SELECT * FROM information_schema.table_privileges 
-    where table_schema like '%${schema.table_schema}%' 
-    and grantee like '%${schema.grantee}%' and table_name like '%${schema.table_name}%'`
+    // const query = `SELECT * FROM information_schema.table_privileges 
+    // where table_schema like '%${schema.table_schema}%' 
+    // and grantee like '%${schema.grantee}%' and table_name like '%${schema.table_name}%'`
 
+    const query = `SELECT 
+    n.nspname AS schema_name,
+    c.relname AS object_name,
+    CASE 
+        WHEN c.relkind = 'r' THEN 'table'
+        WHEN c.relkind = 'v' THEN 'view'
+        WHEN c.relkind = 'S' THEN 'sequence'
+        WHEN c.relkind = 'm' THEN 'materialized view'
+        ELSE 'other'
+    END AS object_type,
+    grantee AS user,
+    string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+    FROM 
+        pg_class c
+    JOIN 
+        pg_namespace n ON n.oid = c.relnamespace
+    JOIN 
+        (
+            SELECT 
+                table_name,
+                grantee,
+                privilege_type
+            FROM 
+                information_schema.table_privileges
+            WHERE 
+                grantee like '%${schema.grantee}%'
+                and table_name like '%${schema.table_name}%'
+        ) p ON p.table_name = c.relname 
+    where n.nspname = '${schema.table_schema}'
+    GROUP BY 
+        n.nspname, c.relname, object_type, grantee
+    ORDER BY 
+        n.nspname, c.relname, grantee;`
+
+    const query2 = `SELECT 
+        n.nspname AS schema_name,
+        c.relname AS object_name,
+        CASE 
+            WHEN c.relkind = 'r' THEN 'table'
+            WHEN c.relkind = 'v' THEN 'view'
+            WHEN c.relkind = 'S' THEN 'sequence'
+            WHEN c.relkind = 'm' THEN 'materialized view'
+            ELSE 'other'
+        END AS object_type,
+        grantee AS user,
+        string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+        FROM 
+            pg_class c
+        JOIN 
+            pg_namespace n ON n.oid = c.relnamespace
+        JOIN 
+            (
+                SELECT 
+                    table_name,
+                    grantee,
+                    privilege_type
+                FROM 
+                    information_schema.table_privileges
+                WHERE 
+                    grantee = '${schema.grantee}'
+                    and table_name like '%${schema.table_name}%'
+            ) p ON p.table_name = c.relname 
+        where n.nspname = '${schema.table_schema}'
+        GROUP BY 
+            n.nspname, c.relname, object_type, grantee
+        ORDER BY 
+            n.nspname, c.relname, grantee;`
+
+        const query3 = `SELECT 
+            n.nspname AS schema_name,
+            c.relname AS object_name,
+            CASE 
+                WHEN c.relkind = 'r' THEN 'table'
+                WHEN c.relkind = 'v' THEN 'view'
+                WHEN c.relkind = 'S' THEN 'sequence'
+                WHEN c.relkind = 'm' THEN 'materialized view'
+                ELSE 'other'
+            END AS object_type,
+            grantee AS user,
+            string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+            FROM 
+                pg_class c
+            JOIN 
+                pg_namespace n ON n.oid = c.relnamespace
+            JOIN 
+                (
+                    SELECT 
+                        table_name,
+                        grantee,
+                        privilege_type
+                    FROM 
+                        information_schema.table_privileges
+                    WHERE 
+                        grantee = '${schema.grantee}'
+                        and table_name = '${schema.table_name}'
+                ) p ON p.table_name = c.relname 
+            where n.nspname = '${schema.table_schema}'
+            GROUP BY 
+                n.nspname, c.relname, object_type, grantee
+            ORDER BY 
+                n.nspname, c.relname, grantee;`
+      
+      
+      const query4 = `SELECT 
+                n.nspname AS schema_name,
+                c.relname AS object_name,
+                CASE 
+                    WHEN c.relkind = 'r' THEN 'table'
+                    WHEN c.relkind = 'v' THEN 'view'
+                    WHEN c.relkind = 'S' THEN 'sequence'
+                    WHEN c.relkind = 'm' THEN 'materialized view'
+                    ELSE 'other'
+                END AS object_type,
+                grantee AS user,
+                string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+                FROM 
+                    pg_class c
+                JOIN 
+                    pg_namespace n ON n.oid = c.relnamespace
+                JOIN 
+                    (
+                        SELECT 
+                            table_name,
+                            grantee,
+                            privilege_type
+                        FROM 
+                            information_schema.table_privileges
+                        WHERE 
+                            grantee like '%${schema.grantee}%'
+                            and table_name like '%${schema.table_name}%'
+                    ) p ON p.table_name = c.relname 
+                where n.nspname like '%${schema.table_schema}%'
+                GROUP BY 
+                    n.nspname, c.relname, object_type, grantee
+                ORDER BY 
+                    n.nspname, c.relname, grantee;`
+                console.log(schema)
     if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+      if(schema.table_schema !== '' && schema.grantee == '' && schema.table_name == ''){
+        this.#connection.query(query, (err, res) => {
 
-        if (err) {
-          return result(err, null);
-        }
-  
-        return result(null, res.rows);
-      });
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      } else if(schema.table_schema !== '' && schema.grantee !== '' && schema.table_name == ''){
+        this.#connection.query(query2, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      } else if(schema.table_schema !== '' && schema.grantee !== '' && schema.table_name !== ''){
+        this.#connection.query(query3, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      } else {
+        this.#connection.query(query4, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      }
     } else{
       return result("err", null);
     }

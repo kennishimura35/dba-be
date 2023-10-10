@@ -246,12 +246,12 @@ class PgsqlController {
 
       data.forEach(schema => {
         schemas.push({
-          grantor : schema.grantor,
-          grantee: schema.grantee,
-          database: schema.table_catalog,
-          table_schema: schema.table_schema,
-          table_name: schema.table_name,
-          privilege_type: schema.privilege_type
+          schema_name: schema.schema_name,
+          user: schema.user,
+          table: schema.object_name,
+          permissions: schema.permissions,
+          object_type : schema.object_type,
+          // privilege_type: schema.privilege_type
         });
       });
 
