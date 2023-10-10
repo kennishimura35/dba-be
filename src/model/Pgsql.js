@@ -6,7 +6,7 @@ class Pgsql {
   #connection = null;
   
   async getUsers(req, result) {
-     const query = `select * from pg_catalog.pg_user catalog`
+     const query = `select * from pg_catalog.pg_user catalog order by usename asc`
      if (this.#connection !== null && this.#connection !== undefined){
       // console.log(this.#connection)
       this.#connection.query(query,(err, res) => {
@@ -23,7 +23,12 @@ class Pgsql {
    };
 
    async getDatabases(result) {
-    const query = `select * from pg_catalog.pg_database`
+    const query = `select t1.datname AS db_name,  
+    pg_size_pretty(pg_database_size(t1.datname)) as db_size,
+    pg_database_size(t1.datname)
+    from pg_database t1
+    order by 3 desc
+    `
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query,(err, res) => {
 
@@ -31,6 +36,27 @@ class Pgsql {
           return result(err, null);
         }
   
+        return result(null, res.rows);
+      });
+    } else{
+      return result("err", null);
+    }
+   
+  };
+
+  async getDatabaseSize(req, result) {
+    const query = `select t1.datname AS db_name,  
+    pg_size_pretty(pg_database_size(t1.datname)) as db_size,
+    pg_database_size(t1.datname)
+    from pg_database t1
+    where t1.datname = '${req.app.locals.PG_DATABASE}'
+    order by 3 desc`
+    if (this.#connection !== null && this.#connection !== undefined){
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
         return result(null, res.rows);
       });
     } else{
@@ -95,10 +121,28 @@ class Pgsql {
   async getTableSize(schema, table_name, result) {
     const query = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"'),
     pg_size_pretty(pg_relation_size('"'||table_schema||'"."'||table_name||'"'))
+    from information_schema.tables where table_schema = '${schema}' and table_name like '%${table_name}%' 
+    order by 3 desc`
+
+    const query2 = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"'),
+    pg_size_pretty(pg_relation_size('"'||table_schema||'"."'||table_name||'"'))
     from information_schema.tables where table_schema like '%${schema}%' and table_name like '%${table_name}%' 
     order by 3 desc`
 
     if (this.#connection !== null && this.#connection !== undefined){
+
+      if(schema === ''){
+        this.#connection.query(query2, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      }
+      
+      else{
       this.#connection.query(query, (err, res) => {
 
         if (err) {
@@ -107,6 +151,7 @@ class Pgsql {
   
         return result(null, res.rows);
       });
+      }
     } else{
       return result("err", null);
     }

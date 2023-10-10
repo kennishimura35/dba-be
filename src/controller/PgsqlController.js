@@ -128,7 +128,36 @@ class PgsqlController {
 
       data.forEach(database => {
         databases.push({
-          datname : database.datname
+          datname : database.db_name,
+          db_size: database.db_size
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        databases
+      );
+ 
+    });
+  }
+
+  getDatabaseSize = (req, res) => {
+    const messages = [];
+
+    this.#pgsql.getDatabaseSize(req, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Databases berhasil ditemukan`);
+      const databases  = [];
+      data.forEach(database => {
+        databases.push({
+          database_name : database.db_name,
+          pg_size_pretty : database.db_size,
         });
       });
 

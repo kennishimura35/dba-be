@@ -4,6 +4,6 @@ const pgsqlRouter = require("./pgsqlRouter");
 
 const routes = Router();
 routes.use("/auth", authRouter);
-routes.use("/invitation", pgsqlRouter);
+routes.use("/pgsql", pgsqlRouter);
 
 module.exports = routes;
