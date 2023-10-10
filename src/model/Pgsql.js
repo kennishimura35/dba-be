@@ -92,10 +92,11 @@ class Pgsql {
     
   };
 
-  async getTableSize(schema, result) {
-    const query = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"')
-    from information_schema.tables where table_schema = '${schema}'
-    order by 3`
+  async getTableSize(schema, table_name, result) {
+    const query = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"'),
+    pg_size_pretty(pg_relation_size('"'||table_schema||'"."'||table_name||'"'))
+    from information_schema.tables where table_schema like '%${schema}%' and table_name like '%${table_name}%' 
+    order by 3 desc`
 
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query, (err, res) => {

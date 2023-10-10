@@ -238,7 +238,8 @@ class PgsqlController {
   getTableSize = (req, res) => {
     const messages = [];
     const schemata = req.query.schema
-    this.#pgsql.getTableSize(schemata, (err, data) => {
+    const table_name = req.query.table_name
+    this.#pgsql.getTableSize(schemata, table_name,(err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -252,7 +253,8 @@ class PgsqlController {
         schemas.push({
           table_schema : schema.table_schema,
           table_name: schema.table_name,
-          pg_relation_size: schema.pg_relation_size
+          pg_relation_size: schema.pg_relation_size,
+          pg_size_pretty: schema.pg_size_pretty
         });
       });
 
