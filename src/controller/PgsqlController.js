@@ -590,8 +590,8 @@ class PgsqlController {
     const schemas = req.body.schemas;
     const user = req.body.user;
     
-    if (schemas === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+    if (schemas === null || user === null || schemas === '' || user === ''){
+      return InternalServerErr(res, "Not Valid Data");
     }
 
     try {
@@ -627,7 +627,7 @@ class PgsqlController {
     const databases = req.body.databases;
     const user = req.body.user;
     
-    if (databases === null || user === null){
+    if (databases === null || user === null || databases === '' || user === ''){
       return InternalServerErr(res, "Data not valid");
     }
 
@@ -669,8 +669,8 @@ class PgsqlController {
     const password = req.body.password;
     const user = req.body.user;
     
-    if (password === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+    if (password === null || user === null || password === '' || user === ''){
+      return InternalServerErr(res, "Not Valid Data");
     }
 
     try {

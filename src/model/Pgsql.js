@@ -575,8 +575,6 @@ class Pgsql {
   };
 
   async grantAllToDatabase(databases, user, result) {
-    console.log(databases)
-    console.log(user)
     let query = `
         GRANT ALL
         ON database ${databases} 
@@ -599,9 +597,7 @@ class Pgsql {
   };
 
   async createSchema(schemas, user, result) {
-    console.log(schemas)
-    console.log(user)
-    const query = `CREATE SCHEMA IF NOT EXISTS ${schemas} AUTHORIZATION ${user}`
+    const query = `CREATE SCHEMA ${schemas} AUTHORIZATION ${user}`
     // console.log(query)
   
     if (this.#connection !== null && this.#connection !== undefined){
@@ -619,8 +615,6 @@ class Pgsql {
   };
 
   async createDatabase(databases, user, result) {
-    console.log(databases)
-    console.log(user)
     const query = `CREATE DATABASE ${databases} WITH OWNER ${user}`
     // console.log(query)
   
@@ -639,11 +633,7 @@ class Pgsql {
   };
 
   async createUser(user, password, result) {
-    console.log(user)
-    console.log(password)
     const query = `create user ${user} with encrypted password '${password}';`;
-    console.log(query)
-  
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query, (err, res) => {
 
