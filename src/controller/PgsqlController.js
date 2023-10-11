@@ -2,7 +2,7 @@ const { Pgsql } = require("../model/Pgsql");
 const moment = require('moment');
 const uuid = require("uuid").v4;
 const localStorage = require("localStorage");
-const { Ok, BadRequest, InternalServerErr, DataUpdated, DataDeleted, SearchOk, NotFound, DataCreated } = require("../helper/ResponseUtil");
+const { Ok, BadRequest, InternalServerErr, DataUpdated, DataDeleted, SearchOk, NotFound, DataCreated, Unauthorized } = require("../helper/ResponseUtil");
 require('dotenv').config();
 
 class PgsqlController {
@@ -272,6 +272,46 @@ class PgsqlController {
         res,
         messages,
         schemas
+      );
+ 
+    });
+         
+    } catch (error) {
+        console.log(error)
+    }
+  }
+
+  getSuperUser = (req, res) => {
+    const messages = [];
+
+    try {
+    this.#pgsql.getSuperuser(req, (err, data) => {
+      if (err) {
+        if(err.includes('Not Superuser')){
+          messages.push('Not Superuser')
+          return Unauthorized(res, messages)
+        } else {
+          messages.push('Internal error');
+          messages.push(err.message);
+          return InternalServerErr(res, messages);
+        }
+        
+      }
+
+      messages.push(`User berhasil ditemukan`);
+      const users  = [];
+
+      users.forEach(us => {
+        users.push({
+          role_name : us.role_name,
+          role_attributes: us.role_attributes
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        users
       );
  
     });
