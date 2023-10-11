@@ -445,7 +445,7 @@ class PgsqlController {
     const user = req.body.user;
 
     if (schemas === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
     try {
@@ -483,7 +483,7 @@ class PgsqlController {
     const user = req.body.user;
 
     if (schemas === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
 
@@ -521,7 +521,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (schemas === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
     try {
@@ -557,7 +557,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (schemas === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
     try {
@@ -594,7 +594,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (databases === null || user === null){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
     try {
@@ -631,7 +631,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (schemas === null || user === null || schemas === '' || user === ''){
-      return InternalServerErr(res, "Not Valid Data");
+      return BadRequest(res, "Not Valid Data");
     }
 
     try {
@@ -668,7 +668,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (databases === null || user === null || databases === '' || user === ''){
-      return InternalServerErr(res, "Data not valid");
+      return BadRequest(res, "Data not valid");
     }
 
     try {
@@ -710,7 +710,7 @@ class PgsqlController {
     const user = req.body.user;
     
     if (password === null || user === null || password === '' || user === ''){
-      return InternalServerErr(res, "Not Valid Data");
+      return BadRequest(res, "Not Valid Data");
     }
 
     try {
