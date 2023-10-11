@@ -65,8 +65,25 @@ class Pgsql {
    
   };
 
+  async getTotalDatabaseSize(req, result) {
+    const query = `SELECT pg_size_pretty(sum(pg_database_size(datname))::bigint) AS total_database_size
+    FROM pg_database;`
+    if (this.#connection !== null && this.#connection !== undefined){
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
+        return result(null, res.rows);
+      });
+    } else{
+      return result("err", null);
+    }
+   
+  };
+
   async getSchemas(result) {
-    const query = `SELECT schema_name FROM information_schema.schemata`
+    const query = `SELECT schema_name FROM information_schema.schemata order by schema_name asc`
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query,(err, res) => {
 
@@ -83,7 +100,7 @@ class Pgsql {
   };
 
   async getTables(schema, result) {
-    const query = `SELECT * FROM information_schema.tables WHERE table_schema = '${schema}' `
+    const query = `SELECT * FROM information_schema.tables WHERE table_schema = '${schema}' order by table_name asc `
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query, (err, res) => {
 
@@ -239,7 +256,75 @@ class Pgsql {
                     n.nspname, c.relname, object_type, grantee
                 ORDER BY 
                     n.nspname, c.relname, grantee;`
-                console.log(schema)
+
+       const query5 = `SELECT 
+                n.nspname AS schema_name,
+                c.relname AS object_name,
+                CASE 
+                    WHEN c.relkind = 'r' THEN 'table'
+                    WHEN c.relkind = 'v' THEN 'view'
+                    WHEN c.relkind = 'S' THEN 'sequence'
+                    WHEN c.relkind = 'm' THEN 'materialized view'
+                    ELSE 'other'
+                END AS object_type,
+                grantee AS user,
+                string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+                FROM 
+                    pg_class c
+                JOIN 
+                    pg_namespace n ON n.oid = c.relnamespace
+                JOIN 
+                    (
+                        SELECT 
+                            table_name,
+                            grantee,
+                            privilege_type
+                        FROM 
+                            information_schema.table_privileges
+                        WHERE 
+                            grantee like '%${schema.grantee}%'
+                            and table_name = '${schema.table_name}'
+                    ) p ON p.table_name = c.relname 
+                where n.nspname = '${schema.table_schema}'
+                GROUP BY 
+                    n.nspname, c.relname, object_type, grantee
+                ORDER BY 
+                    n.nspname, c.relname, grantee;`
+
+              const query6 = `SELECT 
+                n.nspname AS schema_name,
+                c.relname AS object_name,
+                CASE 
+                    WHEN c.relkind = 'r' THEN 'table'
+                    WHEN c.relkind = 'v' THEN 'view'
+                    WHEN c.relkind = 'S' THEN 'sequence'
+                    WHEN c.relkind = 'm' THEN 'materialized view'
+                    ELSE 'other'
+                END AS object_type,
+                grantee AS user,
+                string_agg(privilege_type, ', ' ORDER BY privilege_type) AS permissions
+                FROM 
+                    pg_class c
+                JOIN 
+                    pg_namespace n ON n.oid = c.relnamespace
+                JOIN 
+                    (
+                        SELECT 
+                            table_name,
+                            grantee,
+                            privilege_type
+                        FROM 
+                            information_schema.table_privileges
+                        WHERE 
+                            grantee = '${schema.grantee}'
+                            and table_name like '%${schema.table_name}%'
+                    ) p ON p.table_name = c.relname 
+                where n.nspname like '%${schema.table_schema}%'
+                GROUP BY 
+                    n.nspname, c.relname, object_type, grantee
+                ORDER BY 
+                    n.nspname, c.relname, grantee;`
+
     if (this.#connection !== null && this.#connection !== undefined){
       if(schema.table_schema !== '' && schema.grantee == '' && schema.table_name == ''){
         this.#connection.query(query, (err, res) => {
@@ -268,7 +353,25 @@ class Pgsql {
     
           return result(null, res.rows);
         });
-      } else {
+      } else if(schema.table_schema !== '' && schema.grantee === '' && schema.table_name !== ''){
+        this.#connection.query(query5, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      } else if(schema.table_schema === '' && schema.grantee !== '' && schema.table_name === ''){
+        this.#connection.query(query6, (err, res) => {
+
+          if (err) {
+            return result(err, null);
+          }
+    
+          return result(null, res.rows);
+        });
+      }else {
         this.#connection.query(query4, (err, res) => {
 
           if (err) {

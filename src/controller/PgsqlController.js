@@ -83,11 +83,10 @@ class PgsqlController {
     };
   }
 
- 
-
   getUsers = (req, res) => {
     const messages = [];
 
+    try {
     this.#pgsql.getUsers(req, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -111,11 +110,16 @@ class PgsqlController {
       );
  
     });
+       
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   getDatabases = (req, res) => {
     const messages = [];
 
+    try {
     this.#pgsql.getDatabases((err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -140,11 +144,16 @@ class PgsqlController {
       );
  
     });
+       
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   getDatabaseSize = (req, res) => {
     const messages = [];
 
+    try {
     this.#pgsql.getDatabaseSize(req, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -168,11 +177,47 @@ class PgsqlController {
       );
  
     });
+        
+    } catch (error) {
+        console.log(error)
+    }
+  }
+
+  getTotalDatabaseSize = (req, res) => {
+    const messages = [];
+
+    try {
+    this.#pgsql.getTotalDatabaseSize(req, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Databases berhasil ditemukan`);
+      const databases  = [];
+      data.forEach(database => {
+        databases.push({
+          total_database_size : database.total_database_size,
+        });
+      });
+
+      return Ok(
+        res,
+        messages,
+        databases
+      );
+ 
+    });
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   getSchemas = (req, res) => {
     const messages = [];
    
+    try {
     this.#pgsql.getSchemas((err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -196,11 +241,17 @@ class PgsqlController {
       );
  
     });
+       
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   getTables = (req, res) => {
     const messages = [];
     const schema = req.query.schema
+
+    try {
     this.#pgsql.getTables(schema, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -224,6 +275,10 @@ class PgsqlController {
       );
  
     });
+         
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   getPermissions = (req, res) => {
@@ -234,6 +289,7 @@ class PgsqlController {
       table_name: req.query.table_name
     }
 
+    try {
     this.#pgsql.getPermissions(schemata, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -262,12 +318,17 @@ class PgsqlController {
       );
  
     });
+  } catch (error) {
+      console.log(error)
+  }
   }
 
   getTableSize = (req, res) => {
     const messages = [];
     const schemata = req.query.schema
     const table_name = req.query.table_name
+
+    try {
     this.#pgsql.getTableSize(schemata, table_name,(err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -294,6 +355,10 @@ class PgsqlController {
       );
  
     });
+       
+  } catch (error) {
+      console.log(error)
+  }
   }
 
   loginDatabase = (req, res) => {
@@ -305,6 +370,7 @@ class PgsqlController {
     req.app.locals.PG_USER= req?.body?.PG_USER
     req.app.locals.PG_PASS= req?.body?.PG_PASS
 
+    try {
     this.#pgsql.loginDatabase(req, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -328,6 +394,9 @@ class PgsqlController {
       );
  
     });
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   grantAllToAllSchemas = (req, res) => {
@@ -339,6 +408,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.grantAllToAllSchemas(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -361,6 +431,10 @@ class PgsqlController {
         );
   
       });
+        
+      } catch (error) {
+        console.log(error)
+      }
     }
 
   grantAllTablesToAllSchemas = (req, res) => {
@@ -372,6 +446,8 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+
+    try {
     this.#pgsql.grantAllTablesToAllSchemas(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -394,6 +470,9 @@ class PgsqlController {
         );
   
       });
+      } catch (error) {
+        console.log(error)
+      }
     }
 
   grantAllToSchema = (req, res) => {
@@ -405,6 +484,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.grantAllToSchema(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -425,6 +505,10 @@ class PgsqlController {
         );
   
       });
+      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   grantAllTablesToSchema = (req, res) => {
@@ -436,6 +520,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.grantAllTablesToSchema(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -456,6 +541,11 @@ class PgsqlController {
         );
   
       });
+      
+      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   grantAllToDatabase = (req, res) => {
@@ -467,6 +557,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.grantAllToDatabase(databases, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -487,6 +578,11 @@ class PgsqlController {
         );
   
       });
+      
+      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   createSchema = (req, res) => {
@@ -498,6 +594,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.createSchema(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
@@ -518,6 +615,11 @@ class PgsqlController {
         );
   
       });
+      
+      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   createDatabase = (req, res) => {
@@ -529,6 +631,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.createDatabase(databases, user, (err, data) => {
       if (err) {
         console.log(err.code)
@@ -554,6 +657,11 @@ class PgsqlController {
         );
   
       });
+      
+      
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   createUser = (req, res) => {
@@ -565,6 +673,7 @@ class PgsqlController {
       return InternalServerErr(res, "Data not valid");
     }
 
+    try {
     this.#pgsql.createUser(user, password, (err, data) => {
       if (err) {
         // console.log(err.code)
@@ -590,6 +699,11 @@ class PgsqlController {
         );
   
       });
+      
+      
+      } catch (error) {
+        console.log(error)
+      }
   }
   
 
