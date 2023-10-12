@@ -7,6 +7,8 @@ class Pgsql {
   #connection = null;
   
   async getUsers(req, result) {
+    try {
+   
      const query = `select * from pg_catalog.pg_user catalog order by usename asc`
      if (this.#connection !== null && this.#connection !== undefined){
       // console.log(this.#connection)
@@ -21,9 +23,14 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+       
+    } catch (error) {
+        console.log(error)
+    }
    };
 
    async getDatabases(result) {
+    try {
     const query = `select t1.datname AS db_name,  
     pg_size_pretty(pg_database_size(t1.datname)) as db_size,
     pg_database_size(t1.datname)
@@ -42,10 +49,16 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+     
+    } catch (error) {
+      console.log(error)
+    }
    
   };
 
   async getDatabaseSize(req, result) {
+    try {
+     
     const query = `select t1.datname AS db_name,  
     pg_size_pretty(pg_database_size(t1.datname)) as db_size,
     pg_database_size(t1.datname)
@@ -63,10 +76,16 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+     
+    } catch (error) {
+      console.log(error)
+      
+    }
    
   };
 
   async getTotalDatabaseSize(req, result) {
+    try {
     const query = `SELECT pg_size_pretty(sum(pg_database_size(datname))::bigint) AS total_database_size
     FROM pg_database;`
     if (this.#connection !== null && this.#connection !== undefined){
@@ -80,10 +99,16 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
    
   };
 
   async getSchemas(result) {
+    try {
     const query = `SELECT schema_name FROM information_schema.schemata order by schema_name asc`
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query,(err, res) => {
@@ -97,10 +122,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+   
+    } catch (error) {
+      console.log(error)
+    }
     
   };
 
   async getTables(schema, result) {
+    try {
     const query = `SELECT * FROM information_schema.tables WHERE table_schema = '${schema}' order by table_name asc `
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query, (err, res) => {
@@ -114,10 +144,14 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+  } catch (error) {
+    console.log(error)
+  }
     
   };
 
   async getSuperuser(req, result) {
+    try {
     const query = `SELECT usename AS role_name,
                     CASE 
                         WHEN usesuper AND usecreatedb THEN 
@@ -149,8 +183,14 @@ class Pgsql {
       return result("err", null);
     }
     
+      
+    } catch (error) {
+        console.log(error)
+    }
+    
   };
   async getPermissions(schema, result) {
+    try {
     // const query = `SELECT * FROM information_schema.table_privileges 
     // where table_schema like '%${schema.table_schema}%' 
     // and grantee like '%${schema.grantee}%' and table_name like '%${schema.table_name}%'`
@@ -420,9 +460,14 @@ class Pgsql {
       return result("err", null);
     }
     
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async getTableSize(schema, table_name, result) {
+    try {
     const query = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"'),
     pg_size_pretty(pg_relation_size('"'||table_schema||'"."'||table_name||'"'))
     from information_schema.tables where table_schema = '${schema}' and table_name like '%${table_name}%' 
@@ -459,10 +504,13 @@ class Pgsql {
     } else{
       return result("err", null);
     }
-    
+  } catch (error) {
+    console.log(error)
+  }
   };
 
   async loginDatabase(req, result) {
+    try {
     let errs = null
     this.#connection = new Client({
       user: req.app.locals.PG_USER,
@@ -481,12 +529,16 @@ class Pgsql {
       return result(null, [1]);
       
     })
+    
+      
+    } catch (error) {
+        console.log(error)
+    }
   
   };
 
   async grantAllToAllSchemas(schemas, user, result) {
-    // console.log(schemas)
-    // console.log(user)
+    try {
     let query = ``
     schemas?.map((item) => {
       if(item.schema_name !== 'pg_toast' && item.schema_name !== 'pg_temp_1' && 
@@ -519,11 +571,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async grantAllTablesToAllSchemas(schemas, user, result) {
-    // console.log(schemas)
-    // console.log(user)
+    try {
     let query = `
     `
     schemas?.map((item) => {
@@ -557,11 +613,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async grantAllToSchema(schemas, user, result) {
-    // console.log(schemas)
-    // console.log(user)
+    try {
     let query = `
         GRANT USAGE on schema ${schemas} to ${user}; 
         GRANT ALL
@@ -582,11 +642,14 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async grantAllTablesToSchema(schemas, user, result) {
-    // console.log(schemas)
-    // console.log(user)
+    try {
     let query = `
         GRANT USAGE on schema ${schemas} to  ${user}; 
         GRANT ALL ON ALL TABLES
@@ -607,9 +670,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async grantAllToDatabase(databases, user, result) {
+    try {
     let query = `
         GRANT ALL
         ON database ${databases} 
@@ -629,9 +698,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async createSchema(schemas, user, result) {
+    try {
     const query = `CREATE SCHEMA ${schemas} AUTHORIZATION ${user}`
     // console.log(query)
   
@@ -647,9 +722,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async createDatabase(databases, user, result) {
+    try {
     const query = `CREATE DATABASE ${databases} WITH OWNER ${user}`
     // console.log(query)
   
@@ -665,9 +746,15 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
 
   async createUser(user, password, result) {
+    try {
     const query = `create user ${user} with encrypted password '${password}';`;
     if (this.#connection !== null && this.#connection !== undefined){
       this.#connection.query(query, (err, res) => {
@@ -681,9 +768,12 @@ class Pgsql {
     } else{
       return result("err", null);
     }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
   };
-
-
 }
 
 
