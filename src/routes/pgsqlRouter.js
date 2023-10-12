@@ -46,6 +46,19 @@ router.route('/grantAllToSchema')
 router.route('/grantAllTablesToSchema')
 .post(pgsqlController.grantAllTablesToSchema)
 
+
+router.route('/grantSelectAllToAllSchemas')
+  .post(pgsqlController.grantSelectAllToAllSchemas)
+  
+router.route('/grantSelectAllTablesToAllSchemas')
+.post(pgsqlController.grantSelectAllTablesToAllSchemas)
+
+router.route('/grantSelectAllToSchema')
+  .post(pgsqlController.grantSelectAllToSchema)
+  
+router.route('/grantSelectAllTablesToSchema')
+.post(pgsqlController.grantSelectAllTablesToSchema)
+
 router.route('/grantAllToDatabase')
   .post(pgsqlController.grantAllToDatabase)
   

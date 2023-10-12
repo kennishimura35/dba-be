@@ -477,6 +477,44 @@ class PgsqlController {
       }
     }
 
+    grantSelectAllToAllSchemas = (req, res) => {
+      const messages = [];
+      const schemas = req.body.schemas;
+      const user = req.body.user;
+  
+      if (schemas === null || user === null){
+        return BadRequest(res, "Data not valid");
+      }
+  
+      try {
+      this.#pgsql.grantSelectAllToAllSchemas(schemas, user, (err, data) => {
+        if (err) {
+          messages.push('Internal error');
+          messages.push(err.message);
+          return InternalServerErr(res, messages);
+        }
+  
+        messages.push(`Granted user ${user}`);
+        const datas  = [];
+  
+          data.forEach(dt => {
+            datas.push({
+              command : dt.command
+            });
+          });
+  
+          return DataCreated(
+            res,
+            messages,
+          );
+    
+        });
+          
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
   grantAllTablesToAllSchemas = (req, res) => {
     const messages = [];
     const schemas = req.body.schemas;
@@ -515,6 +553,44 @@ class PgsqlController {
       }
     }
 
+    grantSelectAllTablesToAllSchemas = (req, res) => {
+      const messages = [];
+      const schemas = req.body.schemas;
+      const user = req.body.user;
+  
+      if (schemas === null || user === null){
+        return BadRequest(res, "Data not valid");
+      }
+  
+  
+      try {
+      this.#pgsql.grantSelectAllTablesToAllSchemas(schemas, user, (err, data) => {
+        if (err) {
+          messages.push('Internal error');
+          messages.push(err.message);
+          return InternalServerErr(res, messages);
+        }
+  
+        messages.push(`Granted user ${user}`);
+        const datas  = [];
+  
+          data.forEach(dt => {
+            datas.push({
+              command : dt.command
+            });
+          });
+  
+          return DataCreated(
+            res,
+            messages,
+          );
+    
+        });
+        } catch (error) {
+          console.log(error)
+        }
+      }
+
   grantAllToSchema = (req, res) => {
     const messages = [];
     const schemas = req.body.schemas;
@@ -551,6 +627,42 @@ class PgsqlController {
     }
   }
 
+  grantSelectAllToSchema = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+    
+    if (schemas === null || user === null){
+      return BadRequest(res, "Data not valid");
+    }
+
+    try {
+    this.#pgsql.grantSelectAllToSchema(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+      
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   grantAllTablesToSchema = (req, res) => {
     const messages = [];
     const schemas = req.body.schemas;
@@ -562,6 +674,43 @@ class PgsqlController {
 
     try {
     this.#pgsql.grantAllTablesToSchema(schemas, user, (err, data) => {
+      if (err) {
+        messages.push('Internal error');
+        messages.push(err.message);
+        return InternalServerErr(res, messages);
+      }
+
+      messages.push(`Granted user ${user}`);
+      const datas  = [];
+
+      console.log("data,", data.command)
+        
+        datas[0] = { command: data.command}
+
+        return DataCreated(
+          res,
+          messages,
+        );
+  
+      });
+      
+      
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  grantSelectAllTablesToSchema = (req, res) => {
+    const messages = [];
+    const schemas = req.body.schemas;
+    const user = req.body.user;
+    
+    if (schemas === null || user === null){
+      return BadRequest(res, "Data not valid");
+    }
+
+    try {
+    this.#pgsql.grantSelectAllTablesToSchema(schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);

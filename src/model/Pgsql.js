@@ -578,6 +578,44 @@ class Pgsql {
     }
   };
 
+  async grantSelectAllToAllSchemas(schemas, user, result) {
+    try {
+    let query = ``
+    schemas?.map((item) => {
+      if(item.schema_name !== 'pg_toast' && item.schema_name !== 'pg_temp_1' && 
+      item.schema_name !== 'pg_toast_temp_1' && item.schema_name !== 'pg_catalog' && 
+      item.schema_name !== 'information_schema'){
+        // console.log(item.schema_name)
+        query += `
+        GRANT USAGE on schema ${item.schema_name} to  ${user}; 
+        `
+      }
+      
+    })
+
+    // console.log(query)
+  
+    if (this.#connection !== null && this.#connection !== undefined){
+
+      
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
+        return result(null, res);
+      });
+
+    } else{
+      return result("err", null);
+    }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
   async grantAllTablesToAllSchemas(schemas, user, result) {
     try {
     let query = `
@@ -594,6 +632,50 @@ class Pgsql {
         TO ${user}; 
         GRANT ALL ON ALL SEQUENCES IN SCHEMA ${item.schema_name} TO ${user};
         GRANT ALL ON ALL FUNCTIONS IN SCHEMA ${item.schema_name} TO ${user};
+        `
+      }
+      
+    })
+
+    // console.log(query)
+  
+    if (this.#connection !== null && this.#connection !== undefined){
+
+      
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
+        return result(null, res);
+      });
+
+    } else{
+      return result("err", null);
+    }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  async grantSelectAllTablesToAllSchemas(schemas, user, result) {
+    try {
+    let query = `
+    `
+    schemas?.map((item) => {
+      if(item.schema_name !== 'pg_toast' && item.schema_name !== 'pg_temp_1' && 
+      item.schema_name !== 'pg_toast_temp_1' && item.schema_name !== 'pg_catalog' && 
+      item.schema_name !== 'information_schema'){
+        // console.log(item.schema_name)
+        query += `
+        GRANT USAGE on schema ${item.schema_name} to ${user}; 
+        GRANT SELECT
+        ON ALL TABLES IN SCHEMA ${item.schema_name} 
+        TO ${user}; 
+        GRANT SELECT ON ALL SEQUENCES IN SCHEMA ${item.schema_name} TO ${user};
+        GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA ${item.schema_name} TO ${user};
         `
       }
       
@@ -650,6 +732,31 @@ class Pgsql {
     }
   };
 
+  async grantSelectAllToSchema(schemas, user, result) {
+    try {
+    let query = `
+        GRANT USAGE on schema ${schemas} to ${user}; 
+        `
+    // console.log(query)
+  
+    if (this.#connection !== null && this.#connection !== undefined){
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
+        return result(null, res);
+      });
+
+    } else{
+      return result("err", null);
+    }
+      
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
   async grantAllTablesToSchema(schemas, user, result) {
     try {
     let query = `
@@ -659,6 +766,37 @@ class Pgsql {
         TO ${user}; 
         GRANT ALL ON ALL SEQUENCES IN SCHEMA ${schemas} TO ${user};
         GRANT ALL ON ALL FUNCTIONS IN SCHEMA ${schemas} TO ${user};
+        `
+    // console.log(query)
+  
+    if (this.#connection !== null && this.#connection !== undefined){
+      this.#connection.query(query,(err, res) => {
+
+        if (err) {
+          return result(err, null);
+        }
+        return result(null, res);
+      });
+
+    } else{
+      return result("err", null);
+    }
+    
+      
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  async grantSelectAllTablesToSchema(schemas, user, result) {
+    try {
+    let query = `
+        GRANT USAGE on schema ${schemas} to  ${user}; 
+        GRANT SELECT ON ALL TABLES
+        IN SCHEMA ${schemas} 
+        TO ${user}; 
+        GRANT SELECT ON ALL SEQUENCES IN SCHEMA ${schemas} TO ${user};
+        GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA ${schemas} TO ${user};
         `
     // console.log(query)
   
