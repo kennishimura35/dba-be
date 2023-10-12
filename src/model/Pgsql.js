@@ -588,10 +588,12 @@ class Pgsql {
       item.schema_name !== 'information_schema'){
         // console.log(item.schema_name)
         query += `
-        GRANT USAGE on schema ${item.schema_name} to  ${user}; 
+        GRANT USAGE on schema ${item.schema_name} to ${user}; 
         GRANT ALL
         ON ALL TABLES IN SCHEMA ${item.schema_name} 
         TO ${user}; 
+        GRANT ALL ON ALL SEQUENCES IN SCHEMA ${item.schema_name} TO ${user};
+        GRANT ALL ON ALL FUNCTIONS IN SCHEMA ${item.schema_name} TO ${user};
         `
       }
       
@@ -655,6 +657,8 @@ class Pgsql {
         GRANT ALL ON ALL TABLES
         IN SCHEMA ${schemas} 
         TO ${user}; 
+        GRANT ALL ON ALL SEQUENCES IN SCHEMA ${schemas} TO ${user};
+        GRANT ALL ON ALL FUNCTIONS IN SCHEMA ${schemas} TO ${user};
         `
     // console.log(query)
   
