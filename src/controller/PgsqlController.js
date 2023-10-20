@@ -2,7 +2,10 @@ const { Pgsql } = require("../model/Pgsql");
 const moment = require('moment');
 const uuid = require("uuid").v4;
 const localStorage = require("localStorage");
+const { Client, Pool } = require('pg');
+
 const { Ok, BadRequest, InternalServerErr, DataUpdated, DataDeleted, SearchOk, NotFound, DataCreated, Unauthorized } = require("../helper/ResponseUtil");
+const { createJwtToken } = require("../helper/JwtUtil");
 require('dotenv').config();
 
 class PgsqlController {
@@ -120,7 +123,7 @@ class PgsqlController {
     const messages = [];
 
     try {
-    this.#pgsql.getDatabases((err, data) => {
+    this.#pgsql.getDatabases(req, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -216,9 +219,8 @@ class PgsqlController {
 
   getSchemas = (req, res) => {
     const messages = [];
-   
     try {
-    this.#pgsql.getSchemas((err, data) => {
+    this.#pgsql.getSchemas(req.app.locals, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -252,7 +254,7 @@ class PgsqlController {
     const schema = req.query.schema
 
     try {
-    this.#pgsql.getTables(schema, (err, data) => {
+    this.#pgsql.getTables(req, schema, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -330,7 +332,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.getPermissions(schemata, (err, data) => {
+    this.#pgsql.getPermissions(req, schemata, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -369,7 +371,7 @@ class PgsqlController {
     const table_name = req.query.table_name
 
     try {
-    this.#pgsql.getTableSize(schemata, table_name,(err, data) => {
+    this.#pgsql.getTableSize(req, schemata, table_name,(err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -402,16 +404,33 @@ class PgsqlController {
   }
 
   loginDatabase = (req, res) => {
+    try {
     const messages = [];
 
-    req.app.locals.PG_DATABASE= req?.body?.PG_DATABASE
-    req.app.locals.PG_HOST= req?.body?.PG_HOST
-    req.app.locals.PG_PORT= req?.body?.PG_PORT
-    req.app.locals.PG_USER= req?.body?.PG_USER
-    req.app.locals.PG_PASS= req?.body?.PG_PASS
+    // req.app.locals.PG_DATABASE= req?.body?.PG_DATABASE
+    // req.app.locals.PG_HOST= req?.body?.PG_HOST
+    // req.app.locals.PG_PORT= req?.body?.PG_PORT
+    // req.app.locals.PG_USER= req?.body?.PG_USER
+    // req.app.locals.PG_PASS= req?.body?.PG_PASS
 
-    try {
-    this.#pgsql.loginDatabase(req, (err, data) => {
+    const dataToken = {
+      user: req.body.PG_USER,
+      host:  req.body.PG_HOST,
+      database: req.body.PG_DATABASE,
+      password: req.body.PG_PASS,
+      port: req.body.PG_PORT
+    }
+
+    const connection = new Pool({
+      user: req.body.PG_USER,
+      host:  req.body.PG_HOST,
+      database: req.body.PG_DATABASE,
+      password: req.body.PG_PASS,
+      port: req.body.PG_PORT
+    });
+
+    connection.connect((err, data) => {
+      connection.end()
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -419,18 +438,19 @@ class PgsqlController {
       }
 
       messages.push(`Berhasil melakukan Login!`);
-      const schemas  = [];
+      const datas  = {};
 
-      data.forEach(schema => {
-        schemas.push({
-          schema_name : schema.schema_name
-        });
-      });
+      // data.forEach(schema => {
+      //   schemas.push({
+      //     schema_name : schema.schema_name
+      //   });
+      // });
+      datas.token = createJwtToken(dataToken)
 
       return Ok(
         res,
         messages,
-        schemas
+        datas
       );
  
     });
@@ -449,7 +469,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantAllToAllSchemas(schemas, user, (err, data) => {
+    this.#pgsql.grantAllToAllSchemas(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -459,11 +479,11 @@ class PgsqlController {
       messages.push(`Granted user ${user}`);
       const datas  = [];
 
-        data.forEach(dt => {
-          datas.push({
-            command : dt.command
-          });
-        });
+        // data.forEach(dt => {
+        //   datas.push({
+        //     command : dt.command
+        //   });
+        // });
 
         return DataCreated(
           res,
@@ -487,21 +507,22 @@ class PgsqlController {
       }
   
       try {
-      this.#pgsql.grantSelectAllToAllSchemas(schemas, user, (err, data) => {
+      this.#pgsql.grantSelectAllToAllSchemas(req, schemas, user, (err, data) => {
         if (err) {
           messages.push('Internal error');
           messages.push(err.message);
           return InternalServerErr(res, messages);
         }
+        console.log(data.command)
   
         messages.push(`Granted user ${user}`);
         const datas  = [];
   
-          data.forEach(dt => {
-            datas.push({
-              command : dt.command
-            });
-          });
+          // data.forEach(dt => {
+          //   datas.push({
+          //     command : dt.command
+          //   });
+          // });
   
           return DataCreated(
             res,
@@ -526,7 +547,7 @@ class PgsqlController {
 
 
     try {
-    this.#pgsql.grantAllTablesToAllSchemas(schemas, user, (err, data) => {
+    this.#pgsql.grantAllTablesToAllSchemas(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -536,11 +557,11 @@ class PgsqlController {
       messages.push(`Granted user ${user}`);
       const datas  = [];
 
-        data.forEach(dt => {
-          datas.push({
-            command : dt.command
-          });
-        });
+        // data.forEach(dt => {
+        //   datas.push({
+        //     command : dt.command
+        //   });
+        // });
 
         return DataCreated(
           res,
@@ -564,7 +585,7 @@ class PgsqlController {
   
   
       try {
-      this.#pgsql.grantSelectAllTablesToAllSchemas(schemas, user, (err, data) => {
+      this.#pgsql.grantSelectAllTablesToAllSchemas(req, schemas, user, (err, data) => {
         if (err) {
           messages.push('Internal error');
           messages.push(err.message);
@@ -601,7 +622,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantAllToSchema(schemas, user, (err, data) => {
+    this.#pgsql.grantAllToSchema(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -637,7 +658,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantSelectAllToSchema(schemas, user, (err, data) => {
+    this.#pgsql.grantSelectAllToSchema(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -673,7 +694,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantAllTablesToSchema(schemas, user, (err, data) => {
+    this.#pgsql.grantAllTablesToSchema(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -710,7 +731,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantSelectAllTablesToSchema(schemas, user, (err, data) => {
+    this.#pgsql.grantSelectAllTablesToSchema(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -747,7 +768,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.grantAllToDatabase(databases, user, (err, data) => {
+    this.#pgsql.grantAllToDatabase(req, databases, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -784,7 +805,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.createSchema(schemas, user, (err, data) => {
+    this.#pgsql.createSchema(req, schemas, user, (err, data) => {
       if (err) {
         messages.push('Internal error');
         messages.push(err.message);
@@ -821,7 +842,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.createDatabase(databases, user, (err, data) => {
+    this.#pgsql.createDatabase(req, databases, user, (err, data) => {
       if (err) {
         console.log(err.code)
         if (err.code === `42P04`) {
@@ -863,7 +884,7 @@ class PgsqlController {
     }
 
     try {
-    this.#pgsql.createUser(user, password, (err, data) => {
+    this.#pgsql.createUser(req, user, password, (err, data) => {
       if (err) {
         // console.log(err.code)
         if (err.code === `42710`) {

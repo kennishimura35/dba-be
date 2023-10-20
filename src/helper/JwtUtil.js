@@ -4,10 +4,14 @@ const secret = process.env.JWT_SECRET
 const verifyJwt = (req, token) => {
     try {
         var decoded = jwt.verify(token, secret);
+        // console.log(decoded)
         //console.log(decoded.permission)
         // set userId into request
-        req.app.locals.id_user = decoded.id_user
-        req.app.locals.username = decoded.username
+        req.app.locals.PG_DATABASE = decoded.database
+        req.app.locals.PG_HOST = decoded.host
+        req.app.locals.PG_PASS = decoded.password
+        req.app.locals.PG_PORT = decoded.port
+        req.app.locals.PG_USER = decoded.user
 
         return true
     } catch(err) {

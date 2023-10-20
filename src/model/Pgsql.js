@@ -1,6 +1,6 @@
 const { Connection } = require("../helper/DBUtil");
 const localStorage = require("localStorage");
-const { Client } = require('pg');
+const { Client, Pool } = require('pg');
 const { BadRequest } = require("../helper/ResponseUtil");
 
 class Pgsql {
@@ -8,12 +8,20 @@ class Pgsql {
   
   async getUsers(req, result) {
     try {
-   
+      const connection = new Pool({
+          user: req.app.locals.PG_USER,
+          host:  req.app.locals.PG_HOST,
+          database: req.app.locals.PG_DATABASE,
+          password: req.app.locals.PG_PASS,
+          port: req.app.locals.PG_PORT
+      });
      const query = `select * from pg_catalog.pg_user catalog order by usename asc`
-     if (this.#connection !== null && this.#connection !== undefined){
+     if (connection !== null && connection !== undefined){
       // console.log(this.#connection)
-      this.#connection.query(query,(err, res) => {
+      connection.query(query,(err, res) => {
+       connection.end()
        if (err) {
+          connection.end()
          return result(err, null);
        }
 
@@ -29,18 +37,27 @@ class Pgsql {
     }
    };
 
-   async getDatabases(result) {
+   async getDatabases(req, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `select t1.datname AS db_name,  
     pg_size_pretty(pg_database_size(t1.datname)) as db_size,
     pg_database_size(t1.datname)
     from pg_database t1
     order by 3 desc
     `
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
+        connection.end()
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
   
@@ -58,17 +75,24 @@ class Pgsql {
 
   async getDatabaseSize(req, result) {
     try {
-     
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `select t1.datname AS db_name,  
     pg_size_pretty(pg_database_size(t1.datname)) as db_size,
     pg_database_size(t1.datname)
     from pg_database t1
     where t1.datname = '${req.app.locals.PG_DATABASE}'
     order by 3 desc`
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
-
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
+        connection.end()
         if (err) {
+          connection.end()
           return result(err, null);
         }
         return result(null, res.rows);
@@ -86,14 +110,23 @@ class Pgsql {
 
   async getTotalDatabaseSize(req, result) {
     try {
+    const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+    });
     const query = `SELECT pg_size_pretty(sum(pg_database_size(datname))::bigint) AS total_database_size
     FROM pg_database;`
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res.rows);
       });
     } else{
@@ -107,19 +140,28 @@ class Pgsql {
    
   };
 
-  async getSchemas(result) {
+  async getSchemas(req, result) {
     try {
+      const connection = new Pool({
+        user: req.PG_USER,
+        host:  req.PG_HOST,
+        database: req.PG_DATABASE,
+        password: req.PG_PASS,
+        port: req.PG_PORT
+    });
     const query = `SELECT schema_name FROM information_schema.schemata order by schema_name asc`
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
-  
+        connection.end()
         return result(null, res.rows);
       });
     } else{
+      console.log("konz")
       return result("err", null);
     }
    
@@ -129,16 +171,24 @@ class Pgsql {
     
   };
 
-  async getTables(schema, result) {
+  async getTables(req, schema, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `SELECT * FROM information_schema.tables WHERE table_schema = '${schema}' order by table_name asc `
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
-  
+        connection.end()
         return result(null, res.rows);
       });
     } else{
@@ -152,6 +202,13 @@ class Pgsql {
 
   async getSuperuser(req, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `SELECT usename AS role_name,
                     CASE 
                         WHEN usesuper AND usecreatedb THEN 
@@ -166,17 +223,18 @@ class Pgsql {
                     FROM pg_catalog.pg_user where usesuper and usename = '${req.app.locals.PG_USER}'
                     ORDER BY role_name desc;
                     `
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
 
         if(res.rows.length.toString() == '0'){
           return result('Not Superuser', null)
         }
-  
+        connection.end()
         return result(null, res.rows);
       });
     } else{
@@ -189,12 +247,19 @@ class Pgsql {
     }
     
   };
-  async getPermissions(schema, result) {
+  async getPermissions(req, schema, result) {
     try {
     // const query = `SELECT * FROM information_schema.table_privileges 
     // where table_schema like '%${schema.table_schema}%' 
     // and grantee like '%${schema.grantee}%' and table_name like '%${schema.table_name}%'`
 
+    const connection = new Pool({
+      user: req.app.locals.PG_USER,
+      host:  req.app.locals.PG_HOST,
+      database: req.app.locals.PG_DATABASE,
+      password: req.app.locals.PG_PASS,
+      port: req.app.locals.PG_PORT
+    });
     const query = `SELECT 
     n.nspname AS schema_name,
     c.relname AS object_name,
@@ -400,59 +465,65 @@ class Pgsql {
                 ORDER BY 
                     n.nspname, c.relname, grantee;`
 
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
       if(schema.table_schema !== '' && schema.grantee == '' && schema.table_name == ''){
-        this.#connection.query(query, (err, res) => {
+        connection.query(query, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       } else if(schema.table_schema !== '' && schema.grantee !== '' && schema.table_name == ''){
-        this.#connection.query(query2, (err, res) => {
+        connection.query(query2, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       } else if(schema.table_schema !== '' && schema.grantee !== '' && schema.table_name !== ''){
-        this.#connection.query(query3, (err, res) => {
+        connection.query(query3, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       } else if(schema.table_schema !== '' && schema.grantee === '' && schema.table_name !== ''){
-        this.#connection.query(query5, (err, res) => {
+        connection.query(query5, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       } else if(schema.table_schema === '' && schema.grantee !== '' && schema.table_name === ''){
-        this.#connection.query(query6, (err, res) => {
+        connection.query(query6, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       }else {
-        this.#connection.query(query4, (err, res) => {
+        connection.query(query4, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       }
@@ -466,8 +537,16 @@ class Pgsql {
     }
   };
 
-  async getTableSize(schema, table_name, result) {
+  async getTableSize(req, schema, table_name, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
+
     const query = `select table_schema, table_name, pg_relation_size('"'||table_schema||'"."'||table_name||'"'),
     pg_size_pretty(pg_relation_size('"'||table_schema||'"."'||table_name||'"'))
     from information_schema.tables where table_schema = '${schema}' and table_name like '%${table_name}%' 
@@ -478,26 +557,28 @@ class Pgsql {
     from information_schema.tables where table_schema like '%${schema}%' and table_name like '%${table_name}%' 
     order by 3 desc`
 
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
 
       if(schema === ''){
-        this.#connection.query(query2, (err, res) => {
+        connection.query(query2, (err, res) => {
 
           if (err) {
+            connection.end()
             return result(err, null);
           }
-    
+          connection.end()
           return result(null, res.rows);
         });
       }
       
       else{
-      this.#connection.query(query, (err, res) => {
+        connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
-  
+        connection.end()
         return result(null, res.rows);
       });
       }
@@ -537,8 +618,15 @@ class Pgsql {
   
   };
 
-  async grantAllToAllSchemas(schemas, user, result) {
+  async grantAllToAllSchemas(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = ``
     schemas?.map((item) => {
       if(item.schema_name !== 'pg_toast' && item.schema_name !== 'pg_temp_1' && 
@@ -557,14 +645,16 @@ class Pgsql {
 
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
 
       
-      this.#connection.query(query,(err, res) => {
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -578,8 +668,15 @@ class Pgsql {
     }
   };
 
-  async grantSelectAllToAllSchemas(schemas, user, result) {
+  async grantSelectAllToAllSchemas(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = ``
     schemas?.map((item) => {
       if(item.schema_name !== 'pg_toast' && item.schema_name !== 'pg_temp_1' && 
@@ -595,14 +692,16 @@ class Pgsql {
 
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
 
       
-      this.#connection.query(query,(err, res) => {
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -616,8 +715,15 @@ class Pgsql {
     }
   };
 
-  async grantAllTablesToAllSchemas(schemas, user, result) {
+  async grantAllTablesToAllSchemas(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
     `
     schemas?.map((item) => {
@@ -639,14 +745,16 @@ class Pgsql {
 
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
 
       
-      this.#connection.query(query,(err, res) => {
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -660,8 +768,15 @@ class Pgsql {
     }
   };
 
-  async grantSelectAllTablesToAllSchemas(schemas, user, result) {
+  async grantSelectAllTablesToAllSchemas(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
     `
     schemas?.map((item) => {
@@ -683,14 +798,16 @@ class Pgsql {
 
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
+    if (connection !== null && connection !== undefined){
 
       
-      this.#connection.query(query,(err, res) => {
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -704,8 +821,15 @@ class Pgsql {
     }
   };
 
-  async grantAllToSchema(schemas, user, result) {
+  async grantAllToSchema(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
         GRANT USAGE on schema ${schemas} to ${user}; 
         GRANT ALL
@@ -714,12 +838,14 @@ class Pgsql {
         `
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -732,19 +858,28 @@ class Pgsql {
     }
   };
 
-  async grantSelectAllToSchema(schemas, user, result) {
+  async grantSelectAllToSchema(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
         GRANT USAGE on schema ${schemas} to ${user}; 
         `
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -757,8 +892,15 @@ class Pgsql {
     }
   };
 
-  async grantAllTablesToSchema(schemas, user, result) {
+  async grantAllTablesToSchema(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
         GRANT USAGE on schema ${schemas} to  ${user}; 
         GRANT ALL ON ALL TABLES
@@ -769,12 +911,14 @@ class Pgsql {
         `
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection!== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -788,8 +932,15 @@ class Pgsql {
     }
   };
 
-  async grantSelectAllTablesToSchema(schemas, user, result) {
+  async grantSelectAllTablesToSchema(req, schemas, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
         GRANT USAGE on schema ${schemas} to  ${user}; 
         GRANT SELECT ON ALL TABLES
@@ -800,12 +951,14 @@ class Pgsql {
         `
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -819,8 +972,15 @@ class Pgsql {
     }
   };
 
-  async grantAllToDatabase(databases, user, result) {
+  async grantAllToDatabase(req, databases, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     let query = `
         GRANT ALL
         ON database ${databases} 
@@ -828,12 +988,14 @@ class Pgsql {
         `
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query,(err, res) => {
+    if (connection!== null && connection !== undefined){
+      connection.query(query,(err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -847,17 +1009,26 @@ class Pgsql {
     }
   };
 
-  async createSchema(schemas, user, result) {
+  async createSchema(req, schemas, user, result) {
+    const connection = new Pool({
+      user: req.app.locals.PG_USER,
+      host:  req.app.locals.PG_HOST,
+      database: req.app.locals.PG_DATABASE,
+      password: req.app.locals.PG_PASS,
+      port: req.app.locals.PG_PORT
+    });
     try {
     const query = `CREATE SCHEMA ${schemas} AUTHORIZATION ${user}`
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -871,17 +1042,26 @@ class Pgsql {
     }
   };
 
-  async createDatabase(databases, user, result) {
+  async createDatabase(req, databases, user, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `CREATE DATABASE ${databases} WITH OWNER ${user}`
     // console.log(query)
   
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
@@ -895,15 +1075,24 @@ class Pgsql {
     }
   };
 
-  async createUser(user, password, result) {
+  async createUser(req, user, password, result) {
     try {
+      const connection = new Pool({
+        user: req.app.locals.PG_USER,
+        host:  req.app.locals.PG_HOST,
+        database: req.app.locals.PG_DATABASE,
+        password: req.app.locals.PG_PASS,
+        port: req.app.locals.PG_PORT
+      });
     const query = `create user ${user} with encrypted password '${password}';`;
-    if (this.#connection !== null && this.#connection !== undefined){
-      this.#connection.query(query, (err, res) => {
+    if (connection !== null && connection !== undefined){
+      connection.query(query, (err, res) => {
 
         if (err) {
+          connection.end()
           return result(err, null);
         }
+        connection.end()
         return result(null, res);
       });
 
