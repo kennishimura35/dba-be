@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "FTH API",
   "main": "app.js",
+  "engines": {
+    "node": "14.x"
+  },
   "jest": {
     "collectCoverage": true,
     "maxConcurrency": 20,
@@ -41,6 +44,7 @@
     "dotenv": "^16.0.3",
     "exceljs": "^4.3.0",
     "express": "^4.18.2",
+    "firebase-admin": "^12.0.0",
     "fs": "^0.0.1-security",
     "http": "^0.0.1-security",
     "https": "^1.0.0",
@@ -51,6 +55,7 @@
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "mysql-promise": "^5.0.0",
+    "node-cron": "^3.0.3",
     "nodemon": "^2.0.22",
     "path": "^0.12.7",
     "pdf-lib": "^1.17.1",
